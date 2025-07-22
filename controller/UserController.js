@@ -1,6 +1,6 @@
 const User = require("../model/UserModel");
 
-const createUser = async (req, res) => {
+const registerUser = async (req, res) => {
   const username = req.body.username;
   const email = req.body.email;
   const password = req.body.password;
@@ -19,4 +19,38 @@ const createUser = async (req, res) => {
   });
 };
 
-module.exports = createUser;
+const fetchUser = async (req, res) => {
+  try {
+    const users = await User.find({}, "-password");
+    res.json(users);
+  } catch (error) {
+    console.error("Fetch users error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+const userLogin = async (req, res) => {
+  const username = req.body.username;
+  const password = req.body.password;
+
+  try {
+    const user = await User.findOne({ username });
+
+    if (!user) {
+      return res.status(404).json({ message: "User Not Found!" });
+    }
+
+    if (user.password !== password) {
+      return res.status(400).json({ message: "Invalid Credentials!" });
+    }
+
+    res.json({
+      message: "Login Successful!",
+      user: { username: user.username, email: user.email },
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Server Error!" });
+  }
+};
+
+module.exports = { registerUser, fetchUser, userLogin };
